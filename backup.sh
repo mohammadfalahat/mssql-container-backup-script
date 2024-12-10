@@ -56,6 +56,23 @@ done
 if [ ! -d "/home/backupuser/backups/${PROJECT_NAME}/" ]; then
   mkdir /home/backupuser/backups/${PROJECT_NAME}/
 fi
+# Check if BACK_DIR_INSIDE_HOST is empty
+if [[ -z "$BACK_DIR_INSIDE_HOST" ]]; then
+    echo "Error: BACK_DIR_INSIDE_HOST is empty. Exiting."
+    exit 1
+fi
+# Normalize the path by removing trailing slashes
+BACK_DIR_INSIDE_HOST=$(realpath -m "$BACK_DIR_INSIDE_HOST")
+# System directories to block
+BLOCKED_DIRS=("/" "/etc" "/usr" "/bin" "/boot" "/dev" "/var" "/root" "/sys" "/mnt" "/proc")
+# Check if BACK_DIR_INSIDE_HOST matches any blocked directory exactly
+for DIR in "${BLOCKED_DIRS[@]}"; do
+    if [[ "$BACK_DIR_INSIDE_HOST" == "$DIR" ]]; then
+        echo "Error: BACK_DIR_INSIDE_HOST is a restricted system directory ($DIR). Exiting."
+        exit 1
+    fi
+done
+echo "BACK_DIR_INSIDE_HOST is valid: $BACK_DIR_INSIDE_HOST"
 mv ${BACK_DIR_INSIDE_HOST}/* /home/backupuser/backups/${PROJECT_NAME}/
 chown -R backupuser:backupuser /home/backupuser/backups/
 echo "Backup process completed."
