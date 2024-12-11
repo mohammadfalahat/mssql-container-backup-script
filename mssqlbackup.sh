@@ -1,11 +1,5 @@
 #!/bin/bash
-# Source the .env file
-if [ -f "$(dirname "$0")/.env" ]; then
-  source "$(dirname "$0")/.env"
-else
-  echo "Error: .env file not found!"
-  exit 1
-fi
+
 # Default values
 differential="false"
 # Parse arguments
@@ -17,7 +11,10 @@ while [ $# -gt 0 ]; do
       ;;
     -dir)
       if [[ -n "$2" ]]; then
-        if [[ -d "$2" ]]; then
+        if [[ "$2" == "." ]]; then
+          cd "$(pwd)" || { echo "Failed to change directory to current working directory"; exit 1; }
+          echo "Changed directory to current working directory: $(pwd)"
+        elif [[ -d "$2" ]]; then
           cd "$2" || { echo "Failed to change directory to $2"; exit 1; }
           echo "Changed directory to: $2"
         else
@@ -37,6 +34,15 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+
+# Source the .env file
+if [ -f ".env" ]; then
+  source ".env"
+else
+  echo "Error: .env file not found!"
+  exit 1
+fi
+
 # Variables
 export container_name=${DB_CONTAINER_NAME}
 export server="localhost"
