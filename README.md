@@ -25,10 +25,10 @@ sudo mv mssqlbackup.sh /usr/bin/mssqlbackup
 add cronjob with `crontab -e` or `sudo vi /etc/crontab`
 ```
 # to take full backup:
-30 17 * * * root /bin/bash /usr/bin/mssqlbackup -dir /etc/projects/docker_project1
-35 17 * * * root /bin/bash /usr/bin/mssqlbackup -dir /etc/projects/docker_project2
+30 17 * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project1
+35 17 * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project2
 
 # to take differential backup add [-d true] flag:
-0,30 * * * * /bin/bash /usr/bin/mssqlbackup -dir /etc/projects/docker_project1 -d true
-0,30 * * * * /bin/bash /usr/bin/mssqlbackup -dir /etc/projects/docker_project2 -d true
+0,30 * * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project1 -d true
+0,30 * * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project2 -d true
 ```
