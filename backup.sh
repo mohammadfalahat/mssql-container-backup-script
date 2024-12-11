@@ -27,6 +27,14 @@ export server="localhost"
 export username="SA"
 export password=${SA_PASSWORD}
 export backup_dir=${BAK_DIR_INSIDE_CONTAINER}
+
+# Check if DB_HOST exists and has a value
+if [[ -n "${DB_HOST}" ]]; then
+  server="${DB_HOST}"
+fi
+# Print the server variable (for debugging purposes, optional)
+echo "Server is set to: ${server}"
+
 # Databases to exclude
 exclude_databases=("master" "tempdb" "model" "msdb")
 # Get the list of databases
@@ -73,6 +81,6 @@ for DIR in "${BLOCKED_DIRS[@]}"; do
     fi
 done
 echo "BACK_DIR_INSIDE_HOST is valid: $BACK_DIR_INSIDE_HOST"
-mv ${BACK_DIR_INSIDE_HOST}/* /home/backupuser/backups/${PROJECT_NAME}/
+/usr/bin/mv ${BACK_DIR_INSIDE_HOST}/* /home/backupuser/backups/${PROJECT_NAME}/
 chown -R backupuser:backupuser /home/backupuser/backups/
 echo "Backup process completed."
