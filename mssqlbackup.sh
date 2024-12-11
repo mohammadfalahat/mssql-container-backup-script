@@ -17,17 +17,17 @@ while [ $# -gt 0 ]; do
           cd "$absolute_dir" || { echo "Failed to change directory to $absolute_dir"; exit 1; }
           echo "Changed directory to: $absolute_dir"
         else
-          echo "Directory $target_dir does not exist!"
+          echo "Directory $target_dir does not exist!" >&2
           exit 1
         fi
         shift # Move past the directory value
       else
-        echo "Error: Missing argument for -dir flag!"
+        echo "Error: Missing argument for -dir flag!" >&2
         exit 1
       fi
       ;;
     *)
-      echo "Unknown option: $1"
+      echo "Unknown option: $1" >&2
       exit 1
       ;;
   esac
@@ -38,7 +38,7 @@ done
 if [ -f ".env" ]; then
   source ".env"
 else
-  echo "Error: .env file not found!"
+  echo "Error: .env file not found!" >&2
   exit 1
 fi
 
@@ -60,6 +60,11 @@ echo "Server is set to: ${server}"
 exclude_databases=("master" "tempdb" "model" "msdb")
 # Get the list of databases
 databases=$(docker exec $container_name /opt/mssql-tools/bin/sqlcmd -S "${server}" -U "${username}" -P "${password}" -Q "SET NOCOUNT ON; SELECT name FROM sys.databases WHERE database_id > 4" | grep -v "name" | grep -v "^-*$")
+if [[ $? -ne 0 ]]; then
+  echo "Error: Failed to fetch the list of databases." >&2
+  exit 1
+fi
+
 # Loop through the databases and create backups
 for database in $databases; do
     # Check if the database should be excluded
@@ -78,30 +83,42 @@ for database in $databases; do
       echo "Taking full backup..."
       docker exec $container_name /opt/mssql-tools/bin/sqlcmd -S "${server}" -U "${username}" -P "${password}" -Q "BACKUP DATABASE [${database}] TO DISK='${backup_file}'"
     fi
-
+    if [[ $? -ne 0 ]]; then
+      echo "Error: Backup for database ${database} failed." >&2
+      exit 1
+    fi
     echo "Backup for ${database} created: ${backup_file}"
 done
-### MOVE BACKUP FILES TO BACKUPUSER 
+
+# MOVE BACKUP FILES TO BACKUPUSER 
 if [ ! -d "/home/backupuser/backups/${PROJECT_NAME}/" ]; then
-  mkdir /home/backupuser/backups/${PROJECT_NAME}/
+  mkdir -p /home/backupuser/backups/${PROJECT_NAME}/ || { echo "Error: Failed to create backup directory." >&2; exit 1; }
 fi
+
 # Check if BACK_DIR_INSIDE_HOST is empty
 if [[ -z "$BACK_DIR_INSIDE_HOST" ]]; then
-    echo "Error: BACK_DIR_INSIDE_HOST is empty. Exiting."
+    echo "Error: BACK_DIR_INSIDE_HOST is empty. Exiting." >&2
     exit 1
 fi
+
 # Normalize the path by removing trailing slashes
 BACK_DIR_INSIDE_HOST=$(realpath -m "$BACK_DIR_INSIDE_HOST")
+if [[ $? -ne 0 ]]; then
+  echo "Error: Invalid path for BACK_DIR_INSIDE_HOST: $BACK_DIR_INSIDE_HOST" >&2
+  exit 1
+fi
+
 # System directories to block
 BLOCKED_DIRS=("/" "/etc" "/usr" "/bin" "/boot" "/dev" "/var" "/root" "/sys" "/mnt" "/proc")
-# Check if BACK_DIR_INSIDE_HOST matches any blocked directory exactly
 for DIR in "${BLOCKED_DIRS[@]}"; do
     if [[ "$BACK_DIR_INSIDE_HOST" == "$DIR" ]]; then
-        echo "Error: BACK_DIR_INSIDE_HOST is a restricted system directory ($DIR). Exiting."
+        echo "Error: BACK_DIR_INSIDE_HOST is a restricted system directory ($DIR). Exiting." >&2
         exit 1
     fi
 done
 echo "BACK_DIR_INSIDE_HOST is valid: $BACK_DIR_INSIDE_HOST"
-/usr/bin/mv ${BACK_DIR_INSIDE_HOST}/* /home/backupuser/backups/${PROJECT_NAME}/
-chown -R backupuser:backupuser /home/backupuser/backups/
-echo "Backup process completed."
+
+# Move backup files
+/usr/bin/mv ${BACK_DIR_INSIDE_HOST}/* /home/backupuser/backups/${PROJECT_NAME}/ || { echo "Error: Failed to move backup files." >&2; exit 1; }
+chown -R backupuser:backupuser /home/backupuser/backups/ || { echo "Error: Failed to set permissions for backup files." >&2; exit 1; }
+echo "Backup process completed successfully."
