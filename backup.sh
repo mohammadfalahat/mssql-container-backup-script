@@ -15,11 +15,27 @@ while [ $# -gt 0 ]; do
       differential="$2"
       shift 2
       ;;
+    -dir)
+      if [[ -n "$2" ]]; then
+        if [[ -d "$2" ]]; then
+          cd "$2" || { echo "Failed to change directory to $2"; exit 1; }
+          echo "Changed directory to: $2"
+        else
+          echo "Directory $2 does not exist!"
+          exit 1
+        fi
+        shift # Move past the directory value
+      else
+        echo "Error: Missing argument for -dir flag!"
+        exit 1
+      fi
+      ;;
     *)
       echo "Unknown option: $1"
       exit 1
       ;;
   esac
+  shift
 done
 # Variables
 export container_name=${DB_CONTAINER_NAME}
