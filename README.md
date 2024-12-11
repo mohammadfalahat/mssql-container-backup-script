@@ -6,6 +6,7 @@
 ```
 PROJECT_NAME=project
 DB_CONTAINER_NAME=database-container-name
+DB_HOST="localhost,1433"
 SA_PASSWORD=SomeStrongPassword!
 BAK_DIR_INSIDE_CONTAINER=/var/opt/mssql/backup
 BACK_DIR_INSIDE_HOST=./mssql/backup
