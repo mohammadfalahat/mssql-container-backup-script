@@ -11,14 +11,13 @@ while [ $# -gt 0 ]; do
       ;;
     -dir)
       if [[ -n "$2" ]]; then
-        if [[ "$2" == "." ]]; then
-          cd "$(pwd)" || { echo "Failed to change directory to current working directory"; exit 1; }
-          echo "Changed directory to current working directory: $(pwd)"
-        elif [[ -d "$2" ]]; then
-          cd "$2" || { echo "Failed to change directory to $2"; exit 1; }
-          echo "Changed directory to: $2"
+        target_dir="$2"
+        if [[ -d "$target_dir" ]]; then
+          absolute_dir=$(realpath "$target_dir")
+          cd "$absolute_dir" || { echo "Failed to change directory to $absolute_dir"; exit 1; }
+          echo "Changed directory to: $absolute_dir"
         else
-          echo "Directory $2 does not exist!"
+          echo "Directory $target_dir does not exist!"
           exit 1
         fi
         shift # Move past the directory value
