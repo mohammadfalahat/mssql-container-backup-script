@@ -25,10 +25,10 @@ sudo mv mssqlbackup.sh /usr/bin/mssqlbackup
 add cronjob with `crontab -e` or `sudo vi /etc/crontab`
 ```
 # to take full backup:
-30 17 * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project1            >> /var/log/cron.error.log 2>&1; echo " CRON[$$] finished" >> /var/log/cron.error.log
-35 17 * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project2            >> /var/log/cron.error.log 2>&1; echo " CRON[$$] finished" >> /var/log/cron.error.log
+30 17 * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project1            > /tmp/cron_$$.log 2>&1; /usr/bin/cron_tracker $? $$ < /tmp/cron_$$.log
+35 17 * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project2            > /tmp/cron_$$.log 2>&1; /usr/bin/cron_tracker $? $$ < /tmp/cron_$$.log
 
 # to take differential backup add [-d true] flag:
-0,30 * * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project1 -d true  >> /var/log/cron.error.log 2>&1; echo " CRON[$$] finished" >> /var/log/cron.error.log
-0,30 * * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project2 -d true  >> /var/log/cron.error.log 2>&1; echo " CRON[$$] finished" >> /var/log/cron.error.log
+0,30 * * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project1 -d true  > /tmp/cron_$$.log 2>&1; /usr/bin/cron_tracker $? $$ < /tmp/cron_$$.log
+0,30 * * * * root /usr/bin/mssqlbackup -dir /etc/projects/docker_project2 -d true  > /tmp/cron_$$.log 2>&1; /usr/bin/cron_tracker $? $$ < /tmp/cron_$$.log
 ```
