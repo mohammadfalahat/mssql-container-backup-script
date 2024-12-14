@@ -1,6 +1,7 @@
-1.	create .env file next to compose.yml  (for example: `/etc/projects/docker_project1/.env`)
-2.	install `mssqlbackup`
-3.	add crontab schedule
+1.  install Cronjob Tracker ([https://github.com/mohammadfalahat/cronjob-tracker](https://github.com/mohammadfalahat/cronjob-tracker))
+2.	create .env file next to compose.yml  (for example: `/etc/projects/docker_project1/.env`)
+3.	install `mssqlbackup`
+4.	add crontab schedule
 
 ## 1. .env:
 
