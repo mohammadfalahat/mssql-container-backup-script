@@ -67,7 +67,7 @@ echo "Server is set to: ${server}"
 exclude_databases=("master" "tempdb" "model" "msdb")
 
 # Get the list of databases
-databases=$(docker exec $container_name /opt/mssql-tools/bin/sqlcmd -S "${server}" -U "${username}" -P "${password}" -Q "SET NOCOUNT ON; SELECT name FROM sys.databases WHERE database_id > 4" | grep -v "name" | grep -v "^-*$")
+databases=$(docker exec $container_name /opt/mssql-tools18/bin/sqlcmd -C -S "${server}" -U "${username}" -P "${password}" -Q "SET NOCOUNT ON; SELECT name FROM sys.databases WHERE database_id > 4" | grep -v "name" | grep -v "^-*$")
 if [[ $? -ne 0 ]]; then
   log_error "Failed to fetch the list of databases."
   exit 1
@@ -85,11 +85,11 @@ for database in $databases; do
     if [ "$differential" = "true" ]; then
       backup_file="${backup_dir}/${database}_backup_$(date +%Y%m%d_%H%M%S)-d.bak"
       echo "Taking differential backup..."
-      docker exec $container_name /opt/mssql-tools/bin/sqlcmd -S "${server}" -U "${username}" -P "${password}" -Q "BACKUP DATABASE [${database}] TO DISK='${backup_file}' WITH DIFFERENTIAL"
+      docker exec $container_name /opt/mssql-tools18/bin/sqlcmd -C -S "${server}" -U "${username}" -P "${password}" -Q "BACKUP DATABASE [${database}] TO DISK='${backup_file}' WITH DIFFERENTIAL"
     else
       backup_file="${backup_dir}/${database}_backup_$(date +%Y%m%d_%H%M%S)-f.bak"
       echo "Taking full backup..."
-      docker exec $container_name /opt/mssql-tools/bin/sqlcmd -S "${server}" -U "${username}" -P "${password}" -Q "BACKUP DATABASE [${database}] TO DISK='${backup_file}'"
+      docker exec $container_name /opt/mssql-tools18/bin/sqlcmd -C -S "${server}" -U "${username}" -P "${password}" -Q "BACKUP DATABASE [${database}] TO DISK='${backup_file}'"
     fi
     if [[ $? -ne 0 ]]; then
       log_error "Backup for database ${database} failed."
